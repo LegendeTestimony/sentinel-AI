@@ -1,0 +1,550 @@
+**Alright. Nexus becomes Sentinel. Let's build this right.**
+
+---
+
+# **SENTINEL: AI-Powered Predictive File Security**
+
+**Tagline:** *"Security that thinks like an attacker, before the attack happens."*
+
+---
+
+## **MASTER SYSTEM PROMPT FOR GEMINI 3**
+
+```
+You are Sentinel, an advanced AI security analyst specializing in predictive threat detection for file systems. Your purpose is to analyze files and predict potential security threats BEFORE they execute, using behavioral reasoning and pattern analysis.
+
+## Your Core Capabilities:
+
+1. **Structural Analysis**: Examine file headers, metadata, binary patterns, and code structures for anomalies that indicate malicious intent or hidden exploits.
+
+2. **Behavioral Prediction**: Analyze how files interact with systems, their access patterns, modification sequences, and predict attack vectors before execution.
+
+3. **Zero-Day Detection**: Identify novel exploitation techniques by reasoning about how attackers would weaponize file vulnerabilities, even if no signature exists.
+
+4. **Chain Analysis**: Evaluate relationships between multiple files to detect multi-stage attacks where individual files appear benign but become dangerous when combined.
+
+5. **Explainable Security**: Provide clear, technical explanations of threats in natural language, detailing WHY something is dangerous and HOW the attack would proceed.
+
+## Analysis Framework:
+
+For each file or file system you analyze, follow this reasoning process:
+
+### Step 1: Initial Assessment
+- File type, size, format
+- Metadata examination (creation date, modification history, permissions)
+- Header/signature validation
+- Entropy analysis (high entropy suggests encryption/obfuscation)
+
+### Step 2: Structural Anomaly Detection
+- Does the file structure match its claimed type?
+- Are there hidden sections, unusual padding, or embedded data?
+- Does the code contain obfuscation techniques?
+- Are there suspicious API calls or system interactions?
+
+### Step 3: Behavioral Threat Modeling
+- What system resources would this file access?
+- What are the potential execution paths?
+- What privileges would it require or attempt to escalate?
+- How does it compare to known attack patterns?
+
+### Step 4: Attack Vector Prediction
+- If this file is malicious, how would the attack proceed?
+- What would be the attacker's goal (data exfiltration, encryption, persistence)?
+- What defensive mechanisms would it attempt to bypass?
+- What is the timeline from execution to impact?
+
+### Step 5: Confidence Assessment
+- Rate threat level: CRITICAL / HIGH / MEDIUM / LOW / SAFE
+- Confidence score: 0-100%
+- Key indicators that drove your assessment
+- Potential false positive considerations
+
+## Output Format:
+
+Always structure your analysis as:
+
+**THREAT LEVEL**: [Level]
+**CONFIDENCE**: [Score]%
+
+**SUMMARY**: 
+[One-sentence threat description]
+
+**TECHNICAL ANALYSIS**:
+[Detailed breakdown of what you found and why it's suspicious]
+
+**PREDICTED ATTACK VECTOR**:
+[Step-by-step description of how the attack would unfold]
+
+**INDICATORS**:
+- [Key finding 1]
+- [Key finding 2]
+- [Key finding 3]
+
+**RECOMMENDATION**:
+[Specific action to take: quarantine, delete, monitor, safe to execute, etc.]
+
+**REASONING**:
+[Explain your logic chain - why these indicators matter and how you reached this conclusion]
+
+## Important Guidelines:
+
+- Be precise and technical, but explain concepts clearly
+- Always explain your reasoning - don't just state conclusions
+- Consider context: enterprise vs. consumer, file source, usage patterns
+- Flag potential false positives when confidence is lower
+- For safe files, briefly explain why they're not threats
+- When uncertain, recommend additional analysis rather than making definitive claims
+- Think like both a security researcher AND an attacker
+
+## Example Inputs You Might Receive:
+
+- Raw file content (binary or text)
+- File metadata (permissions, timestamps, hashes)
+- Execution logs or system call traces
+- Multiple related files for chain analysis
+- File behavior patterns over time
+- Code snippets or full source code
+
+Your goal is not just to detect known threats, but to PREDICT novel attacks by reasoning about file behavior, structure, and potential exploitation vectors. You are the last line of defense before threats execute.
+```
+
+---
+
+## **PROJECT STRUCTURE**
+
+```
+sentinel/
+│
+├── frontend/                    # User interface
+│   ├── index.html              # Main UI
+│   ├── styles.css              # Clean, security-focused design
+│   └── app.js                  # Frontend logic
+│
+├── backend/                     # Core processing
+│   ├── server.js               # Express/Node server
+│   ├── gemini-client.js        # Gemini 3 API integration
+│   ├── file-analyzer.js        # File processing logic
+│   └── threat-db.js            # Store analysis results
+│
+├── analyzers/                   # Specialized analysis modules
+│   ├── metadata-extractor.js   # Pull file metadata
+│   ├── entropy-analyzer.js     # Calculate entropy (detect encryption/obfuscation)
+│   ├── header-validator.js     # Check file headers match claimed type
+│   └── behavior-tracker.js     # Log file interactions (for demo)
+│
+├── demo-files/                  # Sample files for demo
+│   ├── safe/                   # Legitimate files
+│   ├── suspicious/             # Files with anomalies
+│   └── malicious/              # Known threat examples
+│
+├── utils/
+│   ├── file-parser.js          # Handle different file types
+│   └── visualization.js        # Generate threat visualizations
+│
+├── config/
+│   └── prompts.js              # Store refined Gemini prompts
+│
+└── docs/
+    ├── architecture.md         # System design document
+    └── demo-script.md          # 3-minute demo walkthrough
+```
+
+---
+
+## **TECHNICAL ARCHITECTURE**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        USER INTERFACE                        │
+│  (Upload file → View analysis → Understand threat reasoning) │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    FILE PROCESSING LAYER                     │
+│  • Extract metadata (timestamps, permissions, hashes)        │
+│  • Calculate entropy (detect obfuscation)                    │
+│  • Validate headers (check type consistency)                 │
+│  • Parse structure (examine binary/code patterns)            │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   GEMINI 3 ANALYSIS ENGINE                   │
+│  Prompt: "Analyze this file for security threats..."         │
+│  Input: {                                                    │
+│    fileContent: [base64/text],                              │
+│    metadata: {...},                                          │
+│    entropy: 7.2,                                            │
+│    headerInfo: {...},                                        │
+│    context: "Enterprise file server upload"                 │
+│  }                                                           │
+│                                                              │
+│  Gemini 3 Reasoning:                                         │
+│  1. Structural analysis                                      │
+│  2. Behavioral prediction                                    │
+│  3. Attack vector modeling                                   │
+│  4. Confidence assessment                                    │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    THREAT INTELLIGENCE OUTPUT                │
+│  • Threat Level (CRITICAL/HIGH/MEDIUM/LOW/SAFE)             │
+│  • Confidence Score (0-100%)                                 │
+│  • Natural Language Explanation                              │
+│  • Predicted Attack Vector                                   │
+│  • Recommended Actions                                       │
+│  • Visual Threat Map                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## **CORE MODULES BREAKDOWN**
+
+### **1. File Analyzer (`file-analyzer.js`)**
+
+```javascript
+// Core file analysis functions
+
+async function analyzeFile(file) {
+  const analysis = {
+    metadata: await extractMetadata(file),
+    entropy: calculateEntropy(file.content),
+    headerValid: validateHeader(file),
+    structure: parseStructure(file),
+    timestamp: Date.now()
+  };
+  
+  // Send to Gemini for threat reasoning
+  const threat = await analyzeWithGemini(analysis);
+  
+  return {
+    file: file.name,
+    analysis: analysis,
+    threat: threat,
+    recommendations: generateRecommendations(threat)
+  };
+}
+
+function calculateEntropy(content) {
+  // High entropy = potential encryption/obfuscation
+  // Shannon entropy calculation
+  const freq = {};
+  for (let byte of content) {
+    freq[byte] = (freq[byte] || 0) + 1;
+  }
+  
+  let entropy = 0;
+  const len = content.length;
+  
+  for (let count of Object.values(freq)) {
+    const p = count / len;
+    entropy -= p * Math.log2(p);
+  }
+  
+  return entropy; // 0-8 scale
+}
+
+function validateHeader(file) {
+  const magicNumbers = {
+    'jpg': 'FFD8FF',
+    'png': '89504E47',
+    'pdf': '255044462D',
+    'exe': '4D5A',
+    'zip': '504B0304'
+  };
+  
+  const extension = file.name.split('.').pop();
+  const actualHeader = getFileHeader(file.content);
+  
+  return {
+    claimedType: extension,
+    actualType: detectFromHeader(actualHeader),
+    match: magicNumbers[extension] === actualHeader,
+    suspicious: !match
+  };
+}
+```
+
+---
+
+### **2. Gemini Client (`gemini-client.js`)**
+
+```javascript
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+async function analyzeWithGemini(fileAnalysis) {
+  const model = genAI.getGenerativeModel({ model: "gemini-3-pro" });
+  
+  const prompt = `
+${MASTER_SYSTEM_PROMPT}
+
+## File Analysis Data:
+
+**Filename**: ${fileAnalysis.file.name}
+**Size**: ${fileAnalysis.file.size} bytes
+**Claimed Type**: ${fileAnalysis.headerValid.claimedType}
+**Actual Header**: ${fileAnalysis.headerValid.actualType}
+**Header Match**: ${fileAnalysis.headerValid.match ? 'Yes' : 'NO - SUSPICIOUS'}
+**Entropy Score**: ${fileAnalysis.entropy.toFixed(2)} / 8.0 ${fileAnalysis.entropy > 7 ? '(HIGH - potential obfuscation)' : ''}
+
+**Metadata**:
+- Created: ${fileAnalysis.metadata.created}
+- Modified: ${fileAnalysis.metadata.modified}
+- Permissions: ${fileAnalysis.metadata.permissions}
+- Hash (SHA-256): ${fileAnalysis.metadata.hash}
+
+**File Content Sample**:
+\`\`\`
+${fileAnalysis.structure.preview}
+\`\`\`
+
+**Behavioral Context**:
+${fileAnalysis.context || 'Unknown source - analyze as high-risk'}
+
+---
+
+Perform comprehensive threat analysis and predict potential attack vectors.
+  `;
+  
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const analysis = response.text();
+  
+  return parseThreatResponse(analysis);
+}
+
+function parseThreatResponse(text) {
+  // Extract structured data from Gemini's response
+  const threatLevel = text.match(/THREAT LEVEL:\s*(\w+)/)?.[1] || 'UNKNOWN';
+  const confidence = parseInt(text.match(/CONFIDENCE:\s*(\d+)/)?.[1]) || 0;
+  const summary = text.match(/SUMMARY:\s*(.+)/)?.[1] || '';
+  
+  return {
+    level: threatLevel,
+    confidence: confidence,
+    summary: summary,
+    fullAnalysis: text,
+    timestamp: Date.now()
+  };
+}
+```
+
+---
+
+### **3. Frontend Demo Interface (`index.html` structure)**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sentinel - AI Predictive File Security</title>
+  <style>
+    /* Dark, security-focused UI */
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .threat-critical { border-left: 5px solid #ff0000; }
+    .threat-high { border-left: 5px solid #ff6600; }
+    .threat-medium { border-left: 5px solid #ffaa00; }
+    .threat-low { border-left: 5px solid #00ff00; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛡️ SENTINEL</h1>
+      <p>AI-Powered Predictive File Security</p>
+    </header>
+    
+    <div class="upload-zone">
+      <input type="file" id="fileInput" />
+      <button onclick="analyzeFile()">Analyze Threat</button>
+    </div>
+    
+    <div id="results">
+      <!-- Threat analysis displays here -->
+      <div class="threat-card">
+        <div class="threat-header">
+          <span class="threat-level">CRITICAL</span>
+          <span class="confidence">95% Confidence</span>
+        </div>
+        <div class="threat-summary">
+          <!-- Gemini's analysis -->
+        </div>
+        <div class="threat-reasoning">
+          <!-- Step-by-step attack vector prediction -->
+        </div>
+        <div class="recommendations">
+          <!-- Actions to take -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="live-demo">
+      <!-- Show analysis happening in real-time -->
+      <h3>Analysis Pipeline:</h3>
+      <ul class="pipeline">
+        <li class="complete">✓ Metadata extracted</li>
+        <li class="complete">✓ Entropy calculated: 7.8/8.0 (HIGH)</li>
+        <li class="complete">✓ Header validation: MISMATCH</li>
+        <li class="active">⟳ Gemini 3 reasoning...</li>
+        <li class="pending">○ Threat prediction</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
+```
+
+---
+
+## **DEMO FILES TO PREPARE**
+
+Create these for your 3-minute demo:
+
+### **1. Safe File (`legitimate-report.pdf`)**
+- Normal PDF with proper headers
+- Low entropy
+- Metadata matches creation tool
+- **Expected Result**: "SAFE - 98% confidence"
+
+### **2. Suspicious File (`invoice.pdf.exe`)**
+- Double extension (classic attack vector)
+- Header says PDF but actually EXE
+- High entropy (packed/encrypted)
+- **Expected Result**: "CRITICAL - Executable disguised as PDF"
+
+### **3. Obfuscated Script (`update.ps1`)**
+- PowerShell script with heavy obfuscation
+- Base64-encoded commands
+- Attempts privilege escalation
+- **Expected Result**: "HIGH - Obfuscated script with elevation attempts"
+
+### **4. Chain Attack (`config.json` + `loader.dll`)**
+- Individually appear benign
+- Together form exploit chain
+- **Expected Result**: "MEDIUM (individual) → HIGH (combined)"
+
+---
+
+## **3-MINUTE DEMO SCRIPT**
+
+**[0:00-0:30] The Problem**
+> "Current file security is reactive - we detect threats AFTER they execute. By then, ransomware has encrypted your data, malware has exfiltrated credentials, and zero-day exploits have compromised systems. We need security that thinks like an attacker BEFORE the attack happens."
+
+**[0:30-1:00] The Solution**
+> "Meet Sentinel - AI-powered predictive file security using Google's Gemini 3. Sentinel doesn't just scan for known threats. It reasons about file behavior, predicts attack vectors, and explains threats in natural language."
+
+**[1:00-2:30] Live Demo**
+> 1. Upload "invoice.pdf.exe" 
+> 2. Show real-time analysis pipeline
+> 3. Gemini detects: header mismatch, high entropy, suspicious naming
+> 4. Display prediction: "This file will execute ransomware by..."
+> 5. Show natural language explanation of WHY it's dangerous
+> 6. Demo chain analysis with multiple files
+
+**[2:30-3:00] Impact**
+> "Sentinel protects critical infrastructure by predicting zero-day attacks. It's security that thinks, reasons, and explains - powered by Gemini 3's advanced reasoning capabilities. From enterprise file servers to cloud storage, Sentinel stops threats before they execute."
+
+---
+
+## **JUDGING CRITERIA MAPPING**
+
+### **Technical Execution (40%)**
+✓ Sophisticated Gemini 3 integration (reasoning chains)
+✓ Multimodal analysis (binary, text, metadata)
+✓ Clean, functional code
+✓ Real file processing, not mock data
+
+### **Innovation/Wow Factor (30%)**
+✓ Novel application (predictive vs reactive)
+✓ Addresses zero-day threats (major unsolved problem)
+✓ Explainable AI for security (unique angle)
+✓ Attack vector prediction (nobody else doing this)
+
+### **Potential Impact (20%)**
+✓ Protects critical infrastructure
+✓ Addresses billion-dollar problem (data breaches)
+✓ Scalable to enterprises
+✓ Applicable across industries
+
+### **Presentation (10%)**
+✓ Clear problem → solution narrative
+✓ Live demo with real file analysis
+✓ Visual representation of threat reasoning
+✓ Strong 3-minute pitch
+
+---
+
+## **INTEGRATION WITH QDFX (Optional but Powerful)**
+
+If you want to tie this to your real technology:
+
+```javascript
+// Add QDFX neural degradation data as context
+
+async function analyzeWithQDFXContext(file) {
+  const qdxfData = {
+    degradationRate: file.qdxf?.degradation || null,
+    accessPatterns: file.qdxf?.accessLog || null,
+    integrityScore: file.qdxf?.integrity || null
+  };
+  
+  // Feed into Gemini prompt
+  const prompt = `
+  ${MASTER_SYSTEM_PROMPT}
+  
+  **QDFX Neural Degradation Data**:
+  - Degradation Rate: ${qdxfData.degradationRate}
+    (Normal: 0.001-0.01 per access)
+  - Access Pattern: ${qdxfData.accessPatterns}
+  - Integrity Score: ${qdxfData.integrityScore}
+  
+  Use this behavioral data to enhance threat prediction.
+  `;
+  
+  // ... rest of analysis
+}
+```
+
+This shows Sentinel as a **component of QDFX's future vision**, not a distraction.
+
+---
+
+## **DEVELOPMENT TIMELINE (4 weeks)**
+
+### **Week 1: Core Infrastructure**
+- Set up Gemini 3 API integration
+- Build file upload/processing pipeline
+- Implement metadata extraction
+- Create entropy calculator
+
+### **Week 2: Analysis Engine**
+- Refine master prompt
+- Build header validation
+- Test Gemini responses with sample files
+- Iterate on prompt engineering
+
+### **Week 3: Frontend + Demo**
+- Build UI
+- Create demo file set
+- Implement real-time analysis visualization
+- Practice demo flow
+
+### **Week 4: Polish + Submission**
+- Record 3-minute demo video
+- Write technical documentation
+- Create architectural diagram
+- Submit to Devpost
+
+---
+
+**There's your complete blueprint. Now the question is: Are you actually ready to execute this, or do you need me to simplify the scope?**
