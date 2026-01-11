@@ -3,6 +3,7 @@ import { Shield, Play, Square, Activity, Clock, FileWarning, Lock, Brain, ArrowL
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+import sentinelApi from '../api/sentinelApi';
 
 interface MarathonMetrics {
     startTime: string;
@@ -44,8 +45,7 @@ export function MarathonPage() {
         if (status.running) {
             interval = setInterval(async () => {
                 try {
-                    const response = await fetch('http://localhost:5050/api/marathon/status');
-                    const data = await response.json();
+                    const data = await sentinelApi.getMarathonStatus();
                     setStatus(data);
 
                     // Update analyzed files from recent analyses
@@ -72,25 +72,16 @@ export function MarathonPage() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5050/api/marathon/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    watchPath: watchPath.trim(),
-                    duration: duration
-                })
-            });
+            const data = await sentinelApi.startMarathon(watchPath.trim(), duration);
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (data.success) {
                 toast.success('Marathon Agent started! 🏃');
                 setStatus({ running: true });
             } else {
-                toast.error(data.error || 'Failed to start marathon');
+                toast.error(data.message || 'Failed to start marathon');
             }
-        } catch (error) {
-            toast.error('Failed to connect to backend');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to connect to backend');
             console.error('Start error:', error);
         } finally {
             setLoading(false);
@@ -101,20 +92,16 @@ export function MarathonPage() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5050/api/marathon/stop', {
-                method: 'POST'
-            });
+            const data = await sentinelApi.stopMarathon();
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (data.success) {
                 toast.success('Marathon Agent stopped');
                 setStatus({ running: false, metrics: data.finalMetrics });
             } else {
-                toast.error(data.error || 'Failed to stop marathon');
+                toast.error('Failed to stop marathon');
             }
-        } catch (error) {
-            toast.error('Failed to connect to backend');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to connect to backend');
             console.error('Stop error:', error);
         } finally {
             setLoading(false);
@@ -464,9 +451,9 @@ export function MarathonPage() {
                                                 <div className="flex justify-between">
                                                     <span className="text-dark-300">Threat:</span>
                                                     <span className={`font-semibold ${file.threatLevel === 'CRITICAL' ? 'text-threat-critical' :
-                                                            file.threatLevel === 'HIGH' ? 'text-red-400' :
-                                                                file.threatLevel === 'MEDIUM' ? 'text-yellow-400' :
-                                                                    'text-threat-safe'
+                                                        file.threatLevel === 'HIGH' ? 'text-red-400' :
+                                                            file.threatLevel === 'MEDIUM' ? 'text-yellow-400' :
+                                                                'text-threat-safe'
                                                         }`}>
                                                         {file.threatLevel}
                                                     </span>

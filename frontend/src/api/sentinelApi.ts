@@ -33,6 +33,22 @@ export const sentinelApi = {
     const response = await api.get('/health');
     return response.data;
   },
+
+  // Marathon Mode APIs
+  async startMarathon(watchPath: string, duration: number): Promise<{ success: boolean; message: string }> {
+    const response = await api.post('/marathon/start', { watchPath, duration });
+    return response.data;
+  },
+
+  async stopMarathon(): Promise<{ success: boolean; finalMetrics: any }> {
+    const response = await api.post('/marathon/stop');
+    return response.data;
+  },
+
+  async getMarathonStatus(): Promise<any> {
+    const response = await api.get('/marathon/status');
+    return response.data;
+  },
 };
 
 export default sentinelApi;
