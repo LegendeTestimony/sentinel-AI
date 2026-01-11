@@ -5,6 +5,7 @@
 ### 🎨 Frontend (React + TypeScript + Tailwind 4)
 
 **Components Created:**
+
 - ✅ [FileUpload.tsx](frontend/src/components/FileUpload.tsx) - Drag & drop file upload with visual feedback
 - ✅ [ThreatCard.tsx](frontend/src/components/ThreatCard.tsx) - Displays threat analysis with color-coded severity
 - ✅ [AnalysisPipeline.tsx](frontend/src/components/AnalysisPipeline.tsx) - Real-time analysis progress visualization
@@ -12,6 +13,7 @@
 - ✅ [App.tsx](frontend/src/App.tsx) - Main application with hero section and features
 
 **Infrastructure:**
+
 - ✅ TypeScript types for all analysis objects
 - ✅ Custom `useFileAnalysis` hook for state management
 - ✅ API client with Axios
@@ -21,17 +23,20 @@
 ### ⚙️ Backend (Node.js + Express + TypeScript)
 
 **Core Analyzers:**
+
 - ✅ [metadata-extractor.ts](backend/src/analyzers/metadata-extractor.ts) - Extract file metadata and SHA-256 hash
 - ✅ [entropy-analyzer.ts](backend/src/analyzers/entropy-analyzer.ts) - Shannon entropy calculation for obfuscation detection
 - ✅ [header-validator.ts](backend/src/analyzers/header-validator.ts) - Magic number validation (30+ file types)
 - ✅ [structure-parser.ts](backend/src/analyzers/structure-parser.ts) - Extract strings and detect suspicious APIs
 
 **Services:**
+
 - ✅ [gemini-client.ts](backend/src/services/gemini-client.ts) - Gemini AI integration with prompt engineering
 - ✅ [file-analyzer.ts](backend/src/services/file-analyzer.ts) - Orchestrates all analysis modules
 - ✅ [server.ts](backend/src/server.ts) - Express server with file upload endpoint
 
 **Features Implemented:**
+
 - ✅ File upload handling (multipart/form-data)
 - ✅ Entropy-based obfuscation detection
 - ✅ File header validation with magic numbers
@@ -62,17 +67,20 @@
 ### 1. Install Dependencies (Required)
 
 **Windows:**
+
 ```bash
 install.bat
 ```
 
 **Linux/Mac:**
+
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
 **Or manually:**
+
 ```bash
 npm install
 cd frontend && npm install
@@ -83,6 +91,7 @@ cd ../backend && npm install
 
 1. Get your API key from: https://aistudio.google.com/app/apikey
 2. Edit `backend/.env`:
+
 ```env
 GEMINI_API_KEY=your_actual_api_key_here
 ```
@@ -93,23 +102,26 @@ GEMINI_API_KEY=your_actual_api_key_here
 npm run dev
 ```
 
-This starts both frontend (port 3000) and backend (port 5000).
+This starts both frontend (port 3000) and backend (port 5050).
 
 ### 4. Create Demo Files (Recommended)
 
 Create these files in a `demo-files/` folder for your presentation:
 
 **Safe File Examples:**
+
 - `report.pdf` - Legitimate PDF document
 - `script.js` - Normal JavaScript file
 - `image.png` - Regular image file
 
 **Suspicious File Examples:**
+
 - `invoice.pdf.exe` - Executable disguised as PDF (double extension)
 - `update.ps1` - PowerShell script with base64-encoded commands
 - `loader.dll` - Packed binary with high entropy
 
 **How to create suspicious files for demo:**
+
 ```bash
 # Example: Create a file with suspicious double extension
 echo "console.log('test')" > demo-files/document.pdf.exe
@@ -129,12 +141,14 @@ echo "powershell -enc SGVsbG8gV29ybGQ=" > demo-files/update.ps1
 ### 6. Polish for Demo (Optional)
 
 **UI Enhancements:**
+
 - Add logo/favicon
 - Tweak color schemes
 - Add animations for threat levels
 - Create visual threat map
 
 **Backend Improvements:**
+
 - Add more file type signatures
 - Enhance suspicious API detection
 - Add YARA rule integration (advanced)
@@ -142,6 +156,7 @@ echo "powershell -enc SGVsbG8gV29ybGQ=" > demo-files/update.ps1
 ### 7. Record Demo Video
 
 **3-Minute Script:**
+
 - **0:00-0:30** - Problem: Reactive security fails against zero-days
 - **0:30-1:00** - Solution: Sentinel predicts threats using AI reasoning
 - **1:00-2:30** - Live demo: Upload suspicious file, show analysis pipeline, explain AI reasoning
@@ -166,18 +181,18 @@ echo "powershell -enc SGVsbG8gV29ybGQ=" > demo-files/update.ps1
 
 ## 📊 Current Features Matrix
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| File Upload | ✅ Complete | Drag & drop, 10MB limit |
-| Entropy Analysis | ✅ Complete | Shannon entropy 0-8 scale |
-| Header Validation | ✅ Complete | 30+ file types |
-| API Detection | ✅ Complete | Windows, PowerShell, Linux |
-| Gemini Integration | ✅ Complete | Structured output parsing |
-| Frontend UI | ✅ Complete | Dark theme, responsive |
-| Real-time Pipeline | ✅ Complete | 6-step visualization |
-| Error Handling | ✅ Complete | Graceful failures |
-| TypeScript | ✅ Complete | Full type safety |
-| Documentation | ✅ Complete | Setup guides included |
+| Feature            | Status      | Notes                      |
+| ------------------ | ----------- | -------------------------- |
+| File Upload        | ✅ Complete | Drag & drop, 10MB limit    |
+| Entropy Analysis   | ✅ Complete | Shannon entropy 0-8 scale  |
+| Header Validation  | ✅ Complete | 30+ file types             |
+| API Detection      | ✅ Complete | Windows, PowerShell, Linux |
+| Gemini Integration | ✅ Complete | Structured output parsing  |
+| Frontend UI        | ✅ Complete | Dark theme, responsive     |
+| Real-time Pipeline | ✅ Complete | 6-step visualization       |
+| Error Handling     | ✅ Complete | Graceful failures          |
+| TypeScript         | ✅ Complete | Full type safety           |
+| Documentation      | ✅ Complete | Setup guides included      |
 
 ## 🎨 Color Scheme
 
@@ -192,6 +207,7 @@ SAFE:     #00d4ff (Cyan)
 ## 🚀 Ready to Launch
 
 Your project is **90% complete**. The remaining 10% is:
+
 1. Installing dependencies
 2. Adding your Gemini API key
 3. Creating demo files

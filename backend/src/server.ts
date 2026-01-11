@@ -3,12 +3,17 @@ import cors from 'cors';
 import multer from 'multer';
 import dotenv from 'dotenv';
 import { analyzeFile } from './services/file-analyzer.js';
+import { analyzeURL } from './services/url-analyzer.js';
+import { MarathonAgent } from './services/marathon-agent.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
+
+// Marathon agent instance (global for this demo)
+let marathonAgent: MarathonAgent | null = null;
 
 // Configure multer for file uploads (store in memory)
 const upload = multer({
@@ -55,6 +60,129 @@ app.post('/api/analyze', upload.single('file'), async (req, res) => {
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
+});
+
+// URL analysis endpoint
+app.post('/api/analyze-url', async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'URL is required',
+      });
+    }
+
+    console.log(`Analyzing URL: ${url}`);
+
+    // Perform URL analysis
+    const result = await analyzeURL(url);
+
+    console.log(`URL analysis complete: ${result.threat.level} (${result.threat.confidence}% confidence)`);
+
+    res.json(result);
+  } catch (error) {
+    console.error('URL analysis error:', error);
+    res.status(500).json({
+      error: 'URL analysis failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// ===== MARATHON AGENT ENDPOINTS =====
+
+// Start marathon monitoring
+app.post('/api/marathon/start', async (req, res) => {
+  try {
+    if (marathonAgent) {
+      return res.status(400).json({
+        error: 'Marathon already running',
+        metrics: marathonAgent.getMetrics()
+      });
+    }
+
+    const { watchPath, duration } = req.body;
+
+    if (!watchPath) {
+      return res.status(400).json({
+        error: 'watchPath is required'
+      });
+    }
+
+    marathonAgent = new MarathonAgent({
+      watchPath,
+      checkInterval: 5000, // 5 seconds
+      maxRuntime: duration || 3600000, // 1 hour default for demo
+      learningEnabled: true,
+      autoQuarantine: true,
+      reportInterval: 60000 // 1 minute
+    });
+
+    // Start in background
+    marathonAgent.start().catch(err => {
+      console.error('Marathon error:', err);
+    });
+
+    res.json({
+      message: 'Marathon agent started',
+      config: {
+        watchPath,
+        duration: duration || 3600000,
+        features: ['continuous-monitoring', 'auto-quarantine', 'self-learning']
+      }
+    });
+
+  } catch (error) {
+    console.error('Marathon start error:', error);
+    res.status(500).json({
+      error: 'Failed to start marathon',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Stop marathon monitoring
+app.post('/api/marathon/stop', async (req, res) => {
+  try {
+    if (!marathonAgent) {
+      return res.status(400).json({
+        error: 'No marathon running'
+      });
+    }
+
+    const finalMetrics = marathonAgent.getMetrics();
+    await marathonAgent.stop();
+    marathonAgent = null;
+
+    res.json({
+      message: 'Marathon agent stopped',
+      finalMetrics
+    });
+
+  } catch (error) {
+    console.error('Marathon stop error:', error);
+    res.status(500).json({
+      error: 'Failed to stop marathon',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get marathon status
+app.get('/api/marathon/status', (req, res) => {
+  if (!marathonAgent) {
+    return res.json({
+      running: false,
+      message: 'No marathon currently active'
+    });
+  }
+
+  res.json({
+    running: true,
+    metrics: marathonAgent.getMetrics()
+  });
 });
 
 // Error handling middleware

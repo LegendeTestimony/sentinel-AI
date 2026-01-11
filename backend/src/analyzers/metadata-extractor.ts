@@ -16,8 +16,8 @@ export async function extractMetadata(
     type: file.mimetype,
     lastModified: Date.now(),
     hash,
-    created: new Date().toISOString(),
-    modified: new Date().toISOString(),
+    created: 'Unknown (uploaded file)',
+    modified: 'Unknown (uploaded file)',
     permissions: 'N/A (uploaded file)',
   };
 }

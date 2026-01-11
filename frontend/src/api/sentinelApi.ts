@@ -24,6 +24,11 @@ export const sentinelApi = {
     return response.data;
   },
 
+  async analyzeURL(url: string): Promise<AnalysisResult> {
+    const response = await api.post<AnalysisResult>('/analyze-url', { url });
+    return response.data;
+  },
+
   async healthCheck(): Promise<{ status: string; timestamp: number }> {
     const response = await api.get('/health');
     return response.data;

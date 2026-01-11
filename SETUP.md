@@ -23,18 +23,21 @@ cd ..
 ### Backend Configuration
 
 1. Navigate to the backend directory:
+
 ```bash
 cd backend
 ```
 
 2. Copy the example environment file:
+
 ```bash
 cp .env.example .env
 ```
 
 3. Edit the `.env` file and add your Gemini API key:
+
 ```env
-PORT=5000
+PORT=5050
 GEMINI_API_KEY=YOUR_ACTUAL_API_KEY_HERE
 NODE_ENV=development
 MAX_FILE_SIZE=10485760
@@ -55,6 +58,7 @@ VITE_API_URL=/api
 ### Option 1: Run Both (Recommended)
 
 From the root directory:
+
 ```bash
 npm run dev
 ```
@@ -64,12 +68,14 @@ This starts both frontend and backend simultaneously.
 ### Option 2: Run Separately
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd backend
 npm run dev
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd frontend
 npm run dev
@@ -78,8 +84,8 @@ npm run dev
 ## Step 4: Access the Application
 
 - **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:5000
-- **Health Check:** http://localhost:5000/api/health
+- **Backend API:** http://localhost:5050
+- **Health Check:** http://localhost:5050/api/health
 
 ## 🧪 Testing the Setup
 
@@ -95,9 +101,10 @@ npm run dev
 ### Backend won't start
 
 - **Error: GEMINI_API_KEY not set**
+
   - Make sure you created `backend/.env` and added your API key
 
-- **Port 5000 already in use**
+- **Port 5050 already in use**
   - Change the PORT in `backend/.env` to another port (e.g., 5001)
   - Update the frontend proxy in `frontend/vite.config.ts`
 

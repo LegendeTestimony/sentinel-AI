@@ -40,9 +40,9 @@ export const AnalysisPipeline: React.FC<AnalysisPipelineProps> = ({ steps }) => 
       <h3 className="text-lg font-semibold text-gray-200 mb-4">Analysis Pipeline</h3>
 
       <div className="space-y-3">
-        {steps.map((step, index) => (
+        {steps.map((step) => (
           <div key={step.id} className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-0.5">
+            <div className="shrink-0 mt-0.5">
               {getStepIcon(step.status)}
             </div>
 
@@ -59,15 +59,12 @@ export const AnalysisPipeline: React.FC<AnalysisPipelineProps> = ({ steps }) => 
 
               {step.status === 'active' && (
                 <div className="mt-2 w-full bg-gray-700 rounded-full h-1 overflow-hidden">
-                  <div className="h-full bg-threat-safe animate-pulse-glow" style={{ width: '70%' }} />
+                  <div className="h-full bg-threat-safe animate-pulse-glow w-[70%]" />
                 </div>
               )}
             </div>
 
-            {index < steps.length - 1 && (
-              <div className="absolute left-[22px] mt-7 w-0.5 h-6 bg-gray-700"
-                   style={{ marginLeft: '10px' }} />
-            )}
+
           </div>
         ))}
       </div>

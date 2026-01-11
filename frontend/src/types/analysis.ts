@@ -33,6 +33,57 @@ export interface FileAnalysis {
 
 export type ThreatLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'SAFE' | 'UNKNOWN';
 
+export interface HiddenContentAnalysis {
+  extractedMessages: string[];
+  contentThreatLevel: 'HARMLESS' | 'SUSPICIOUS' | 'MALICIOUS';
+  contentAnalysis: string;
+}
+
+export interface SteganographyTechnique {
+  name: string;
+  confidence: number;
+  description: string;
+  evidence?: string[];
+}
+
+export interface SteganographyAnalysis {
+  detected: boolean;
+  confidence: number;
+  techniques: SteganographyTechnique[];
+  analysis: string;
+  extractedData?: {
+    textMessages: string[];
+    rawDataSamples: string[];
+    totalHiddenBytes: number;
+    dataLocations: string[];
+  };
+}
+
+export interface VirusTotalResult {
+  checked: boolean;
+  found: boolean;
+  detections?: number;
+  totalEngines?: number;
+  scanDate?: string;
+  permalink?: string;
+  positives?: {
+    [engine: string]: {
+      detected: boolean;
+      result: string;
+    };
+  };
+  sha256?: string;
+}
+
+export interface SandboxPrediction {
+  fileOperations: string[];
+  networkActivity: string[];
+  registryChanges: string[];
+  processCreation: string[];
+  riskScore: number;
+  behaviorSummary: string;
+}
+
 export interface ThreatAnalysis {
   level: ThreatLevel;
   confidence: number;
@@ -44,6 +95,25 @@ export interface ThreatAnalysis {
   indicators?: string[];
   recommendation?: string;
   reasoning?: string;
+  hiddenContentAnalysis?: HiddenContentAnalysis;
+  virusTotal?: VirusTotalResult;
+  sandboxPrediction?: SandboxPrediction;
+}
+
+export interface URLInfo {
+  original: string;
+  final: string;
+  redirectChain: string[];
+  protocol: string;
+  domain: string;
+}
+
+export interface WebpageInfo {
+  title?: string;
+  scripts: string[];
+  iframes: string[];
+  forms: string[];
+  externalLinks: string[];
 }
 
 export interface AnalysisResult {
@@ -51,6 +121,9 @@ export interface AnalysisResult {
   analysis: FileAnalysis;
   threat: ThreatAnalysis;
   recommendations: string[];
+  steganography?: SteganographyAnalysis;
+  url?: URLInfo;
+  webpage?: WebpageInfo;
 }
 
 export interface AnalysisPipelineStep {
