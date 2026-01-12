@@ -96,17 +96,15 @@ export const ThreatCard: React.FC<ThreatCardProps> = ({ threat, fileName, stegan
 
       {/* VirusTotal Results */}
       {threat.virusTotal?.checked && (
-        <div className={`mb-4 p-4 rounded-lg border ${
-          threat.virusTotal.found && threat.virusTotal.detections && threat.virusTotal.detections > 0
+        <div className={`mb-4 p-4 rounded-lg border ${threat.virusTotal.found && threat.virusTotal.detections && threat.virusTotal.detections > 0
             ? 'bg-red-500/10 border-red-500/30'
             : 'bg-green-500/10 border-green-500/30'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2 mb-2">
-            <Database className={`w-5 h-5 ${
-              threat.virusTotal.found && threat.virusTotal.detections && threat.virusTotal.detections > 0
+            <Database className={`w-5 h-5 ${threat.virusTotal.found && threat.virusTotal.detections && threat.virusTotal.detections > 0
                 ? 'text-red-400'
                 : 'text-green-400'
-            }`} />
+              }`} />
             <h4 className="text-sm font-semibold text-gray-300">VIRUSTOTAL SCAN</h4>
           </div>
 
@@ -196,11 +194,10 @@ export const ThreatCard: React.FC<ThreatCardProps> = ({ threat, fileName, stegan
           <div className="flex items-center gap-2 mb-3">
             <Eye className="w-5 h-5 text-purple-400" />
             <h4 className="text-sm font-semibold text-purple-300">HIDDEN CONTENT DETECTED</h4>
-            <span className={`ml-auto px-2 py-0.5 text-xs rounded ${
-              threat.hiddenContentAnalysis.contentThreatLevel === 'MALICIOUS' ? 'bg-red-500/20 text-red-400' :
-              threat.hiddenContentAnalysis.contentThreatLevel === 'SUSPICIOUS' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-green-500/20 text-green-400'
-            }`}>
+            <span className={`ml-auto px-2 py-0.5 text-xs rounded ${threat.hiddenContentAnalysis.contentThreatLevel === 'MALICIOUS' ? 'bg-red-500/20 text-red-400' :
+                threat.hiddenContentAnalysis.contentThreatLevel === 'SUSPICIOUS' ? 'bg-yellow-500/20 text-yellow-400' :
+                  'bg-green-500/20 text-green-400'
+              }`}>
               {threat.hiddenContentAnalysis.contentThreatLevel}
             </span>
           </div>

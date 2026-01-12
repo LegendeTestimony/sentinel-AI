@@ -29,7 +29,7 @@ ${JSON.stringify({
   threatScore: threatScore ? {
     normalizedScore: threatScore.normalizedScore,
     riskLevel: threatScore.riskLevel,
-    indicators: threatScore.indicators.map(i => ({ type: i.type, description: i.description }))
+    indicators: threatScore.indicators.map(i => ({ category: i.category, description: i.description }))
   } : null,
   steganography: steganography?.detected ? {
     confidence: steganography.confidence,

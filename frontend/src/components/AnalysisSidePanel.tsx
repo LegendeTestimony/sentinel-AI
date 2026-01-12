@@ -39,7 +39,7 @@ export const AnalysisSidePanel: React.FC<AnalysisSidePanelProps> = ({ result, is
 
       {/* Side Panel */}
       <div
-        className={`fixed right-0 top-0 h-full w-full md:w-[600px] lg:w-[700px] bg-sentinel-bg border-l border-sentinel-border z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 h-full w-full md:w-150 lg:w-175 bg-sentinel-bg border-l border-sentinel-border z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -222,7 +222,7 @@ export const AnalysisSidePanel: React.FC<AnalysisSidePanelProps> = ({ result, is
               {result.file.hash && (
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-gray-400">Hash (SHA-256)</span>
-                  <span className="text-xs font-mono text-gray-500 max-w-[300px] break-all">
+                  <span className="text-xs font-mono text-gray-500 max-w-75 break-all">
                     {result.file.hash}
                   </span>
                 </div>
@@ -249,7 +249,7 @@ export const AnalysisSidePanel: React.FC<AnalysisSidePanelProps> = ({ result, is
                 <span className="text-sm text-gray-400">Measured Entropy</span>
                 <span className="text-sm font-mono">{result.analysis.entropy.toFixed(2)} / 8.0</span>
               </div>
-              <div className="w-full bg-gray-800 rounded-full h-2">
+              <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-purple-400 h-2 rounded-full transition-all"
                   style={{ width: `${(result.analysis.entropy / 8.0) * 100}%` }}
@@ -388,7 +388,7 @@ export const AnalysisSidePanel: React.FC<AnalysisSidePanelProps> = ({ result, is
                 <h3 className="text-lg font-semibold">File Preview</h3>
               </div>
               <div className="bg-black/40 p-4 rounded font-mono text-xs text-gray-400 overflow-x-auto">
-                <pre className="whitespace-pre-wrap break-words">{result.analysis.structure.preview}</pre>
+                <pre className="whitespace-pre-wrap wrap-break-word">{result.analysis.structure.preview}</pre>
               </div>
             </section>
           )}
