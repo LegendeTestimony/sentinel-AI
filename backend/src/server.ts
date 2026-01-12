@@ -24,7 +24,15 @@ const upload = multer({
 });
 
 // Middleware
-app.use(cors());
+// CORS configuration - allows frontend to communicate with backend
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint
