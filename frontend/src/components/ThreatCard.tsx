@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Shield, AlertTriangle, AlertOctagon, Info, CheckCircle, Eye, EyeOff, Scale, MessageSquare, Database, Activity, ExternalLink } from 'lucide-react';
+import React from 'react';
+import { Shield, AlertTriangle, AlertOctagon, Info, CheckCircle, Database, Activity, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import type { ThreatAnalysis, ThreatLevel, SteganographyAnalysis } from '../types/analysis';
 
 interface ThreatCardProps {
@@ -9,7 +9,6 @@ interface ThreatCardProps {
 }
 
 export const ThreatCard: React.FC<ThreatCardProps> = ({ threat, fileName, steganography }) => {
-  const [showDebate, setShowDebate] = useState(false);
 
   const getThreatConfig = (level: ThreatLevel) => {
     switch (level) {

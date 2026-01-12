@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowLeft, GitCompare, AlertTriangle } from 'lucide-react';
+import { Shield, ArrowLeft, GitCompare } from 'lucide-react';
 import { FileUpload } from '../components/FileUpload';
-import { AnalysisPipeline } from '../components/AnalysisPipeline';
 import { ThreatCard } from '../components/ThreatCard';
 import { useFileAnalysis } from '../hooks/useFileAnalysis';
 import type { AnalysisResult } from '../types/analysis';
@@ -15,8 +14,6 @@ export function ComparisonPage() {
   const [resultB, setResultB] = useState<AnalysisResult | null>(null);
   const [analyzingA, setAnalyzingA] = useState(false);
   const [analyzingB, setAnalyzingB] = useState(false);
-  const [pipelineA, setPipelineA] = useState<any[]>([]);
-  const [pipelineB, setPipelineB] = useState<any[]>([]);
 
   const { analyzeFile } = useFileAnalysis();
 
@@ -266,8 +263,8 @@ export function ComparisonPage() {
           {/* File A Results */}
           <div>
             {analyzingA && (
-              <div className="mb-4">
-                <AnalysisPipeline steps={pipelineA} />
+              <div className="mb-4 text-center text-gray-400">
+                Analyzing File A...
               </div>
             )}
             {resultA && (
@@ -282,8 +279,8 @@ export function ComparisonPage() {
           {/* File B Results */}
           <div>
             {analyzingB && (
-              <div className="mb-4">
-                <AnalysisPipeline steps={pipelineB} />
+              <div className="mb-4 text-center text-gray-400">
+                Analyzing File B...
               </div>
             )}
             {resultB && (
