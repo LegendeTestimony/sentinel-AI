@@ -4,6 +4,35 @@ import type { SandboxPrediction, FileAnalysis, ThreatScore, SteganographyAnalysi
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
+ * Retry function with exponential backoff for 429 errors
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      if (error.status === 429) {
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`⏱️  Rate limit hit. Retrying in ${delay}ms... (${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+/**
  * Use AI to predict what would happen if file is executed in a sandbox
  */
 export async function predictSandboxBehavior(
@@ -79,7 +108,11 @@ BEHAVIOR SUMMARY:
 4. Each section can have 0-5 items depending on file type
 5. Risk score should match threat level (SAFE=0-20, LOW=21-40, MEDIUM=41-60, HIGH=61-80, CRITICAL=81-100)`;
 
-    const result = await model.generateContent(prompt);
+    // Wrap in retry logic
+    const result = await retryWithBackoff(async () => {
+      return await model.generateContent(prompt);
+    });
+    
     const text = result.response.text();
 
     // Parse the response

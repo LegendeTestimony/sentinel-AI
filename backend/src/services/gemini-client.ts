@@ -16,6 +16,37 @@ if (!process.env.GEMINI_API_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
+ * Retry function with exponential backoff for 429 errors
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      // If it's a 429 (rate limit), retry with backoff
+      if (error.status === 429) {
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`⏱️  Rate limit hit (429). Retrying in ${delay}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        // For other errors, don't retry
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+/**
  * Parse Gemini's text response into structured threat analysis
  */
 function parseThreatResponse(text: string): ThreatAnalysis {
@@ -138,8 +169,8 @@ export async function analyzeWithGemini(
   steganography?: SteganographyAnalysis
 ): Promise<ThreatAnalysis> {
   try {
-    // Use gemini-3-flash (latest fast model)
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash' });
+    // Use gemini-2.0-flash-exp (only working model)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Build structured analysis data (neutral, fact-based)
     const structuredData = {
@@ -273,7 +304,11 @@ Perform comprehensive threat analysis with explicit reasoning for your threat le
 **IMPORTANT**: If hidden messages were extracted, you MUST include them in your response and analyze their threat potential.
 `;
 
-    const result = await model.generateContent(prompt);
+    // Wrap the Gemini API call with retry logic
+    const result = await retryWithBackoff(async () => {
+      return await model.generateContent(prompt);
+    });
+    
     const response = result.response;
     const analysisText = response.text();
 
@@ -284,8 +319,20 @@ Perform comprehensive threat analysis with explicit reasoning for your threat le
     console.log('✅ Parsed threat level:', parsed.level, 'Confidence:', parsed.confidence);
 
     return parsed;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini analysis error:', error);
+
+    // Handle quota exceeded error specifically
+    if (error.status === 429) {
+      return {
+        level: 'UNKNOWN',
+        confidence: 0,
+        summary: 'Rate limit exceeded - Gemini API quota exhausted',
+        fullAnalysis: `⏱️ Gemini API rate limit exceeded. Your free tier quota has been exhausted.\n\nError: ${error.message}\n\n📈 Check usage: https://aistudio.google.com/app/apikey\n📚 Rate limits: https://ai.google.dev/gemini-api/docs/rate-limits\n\n💡 Quota resets at midnight Pacific Time.`,
+        timestamp: Date.now(),
+        recommendation: 'Analysis limited - wait for quota reset or upgrade API plan',
+      };
+    }
 
     // Return fallback analysis on error
     return {
