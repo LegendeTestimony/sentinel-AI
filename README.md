@@ -296,63 +296,73 @@ This challenge taught me to **design with deployment constraints in mind from th
 
 ---
 
-## 🏗️ How It Works: 11-Stage Analysis Pipeline
+## 🏗️ How It Works: Analysis Pipeline
+
+### Core 6-Stage Pipeline (Current Implementation)
 
 ```
-📁 File Upload
+📁 File Upload (via multer)
     ↓
 🔍 Stage 1: Magic Byte Detection
-    • Offset-aware signature matching
+    • Offset-aware signature matching (PE, ELF, PDF, JPEG, PNG, HEIC, etc.)
+    • Detects 30+ file formats
+    • Extension mismatch detection (.jpg.exe spoofing)
     • Confidence scoring per match
     ↓
-📦 Stage 2: Container Parsing (ISOBMFF, RIFF)
-    • Parse ftyp boxes for HEIC/AVIF/MP4
-    • Validate structure integrity
+📊 Stage 2: Metadata Extraction
+    • SHA-256 hash calculation
+    • File size, mimetype, filename
+    • Timestamps and attributes
     ↓
-📋 Stage 3: Metadata Extraction
-    • SHA-256 hash, file size, timestamps
-    • Permission flags
+🎲 Stage 3: Entropy Analysis
+    • Shannon entropy calculation (0-8 scale)
+    • Measures randomness/encryption level
+    • Context-aware: HEIC @ 7.8 = normal, EXE @ 7.8 = packed malware
     ↓
-📊 Stage 4: Entropy Baseline Analysis
-    • Calculate Shannon entropy (0-8)
-    • Compare against format-specific baselines
-    • Flag abnormal entropy for file type
+🔎 Stage 4: Pattern Detection
+    • Shellcode patterns (NOP sleds)
+    • Base64-encoded executables (PE/ZIP headers)
+    • Suspicious API calls (CreateProcess, WriteFile, RegSetValue)
+    • URLs and IP addresses embedded in files
     ↓
 ⚖️ Stage 5: Weighted Threat Scoring
-    • Positive indicators: -20 for valid format
-    • Negative indicators: +70 for extension mismatch
-    • Normalize to 0-100 risk score
+    • Combines all evidence with weighted scoring:
+      +30 pts: Very high entropy (>7.5)
+      +40 pts: Extension mismatch
+      +50 pts: Shellcode detected
+      +45 pts: Base64 executable
+      +35 pts: Suspicious APIs
+    • Maps to threat levels:
+      0-19 = SAFE | 20-39 = LOW | 40-59 = MEDIUM
+      60-79 = HIGH | 80-100 = CRITICAL
     ↓
-🖼️ Stage 6: Steganography Detection
-    • JPEG LSB analysis
-    • PNG text chunk extraction
-    • Appended data after EOI/IEND markers
-    ↓
-🔀 Stage 7: Polyglot Detection
-    • Detect files valid as multiple formats
-    • Flag dangerous combos (PDF+JS, JPEG+PE)
-    ↓
-💣 Stage 8: Payload Hunter
-    • Shellcode pattern detection
-    • Base64 embedded executables
-    • PE headers in non-executable files
-    ↓
-🛡️ Stage 9: VirusTotal Integration
-    • Check SHA-256 against 70+ AV engines
-    • Return detection count and permalink
-    ↓
-🤖 Stage 10: AI Threat Reasoning
-    • Gemini 3 Flash analyzes all evidence
-    • Predicts attack vectors and behaviors
+🤖 Stage 6: AI Threat Reasoning (Gemini 2.0 Flash)
+    • NOT just summarizing - actual behavioral prediction
+    • Predicts what happens if file executes:
+      - File operations it will perform
+      - Network connections it will make
+      - System changes it will attempt
     • Provides explainable threat assessment
+    • Zero-day detection through reasoning
     ↓
-🧪 Stage 11: Sandbox Behavior Prediction
-    • AI predicts file/network/registry operations
-    • Simulates execution without running code
-    • Risk score 0-100 with behavior summary
-    ↓
-📊 Threat Report Generated
+📊 Final Threat Report
+    • Risk level + confidence score
+    • Detailed indicators found
+    • AI behavioral analysis
+    • Actionable recommendations
 ```
+
+### Advanced 11-Stage Pipeline (TypeScript Implementation)
+
+The full implementation in `backend/src/` includes 5 additional stages:
+
+- **Stage 7**: Steganography Detection (hidden data in images)
+- **Stage 8**: Polyglot Detection (files valid as multiple formats)
+- **Stage 9**: Payload Hunter (embedded executables in non-executable files)
+- **Stage 10**: VirusTotal Integration (70+ AV engines)
+- **Stage 11**: Sandbox Behavior Prediction (predicts file/network/registry operations)
+
+Run `npm run dev` from `backend/` to use the TypeScript version with all 11 stages.
 
 ---
 
@@ -475,39 +485,46 @@ cd ..
 Create `backend/.env`:
 
 ```env
-PORT=5050
+PORT=3000
 GEMINI_API_KEY=your_gemini_api_key_here
 NODE_ENV=development
 MAX_FILE_SIZE=10485760
 
-# VirusTotal (optional - free tier: 500 requests/day, 4 requests/minute)
+# Frontend URL for CORS
+FRONTEND_URL=http://localhost:5173
+
+# VirusTotal (optional - TypeScript version only)
+# Free tier: 500 requests/day, 4 requests/minute
 VIRUSTOTAL_API_KEY=your_virustotal_api_key_here
 ```
 
 Create `frontend/.env`:
 
 ```env
-VITE_API_URL=/api
+# For local development
+VITE_API_URL=http://localhost:3000
+
+# For production (Vercel)
+# VITE_API_URL=https://sentinel-ai-c0wx.onrender.com
 ```
 
 ### Running the Application
 
-**Development mode (runs both frontend and backend):**
+**Backend (JavaScript - 6 core stages):**
 
 ```bash
-npm run dev
+cd backend
+node server.js
 ```
 
-**Or run separately:**
-
-Backend:
+**Backend (TypeScript - full 11 stages):**
 
 ```bash
 cd backend
 npm run dev
 ```
 
-Frontend:
+**Frontend:**
 
 ```bash
 cd frontend
@@ -515,7 +532,7 @@ npm run dev
 ```
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5050
+- **Backend API**: http://localhost:3000
 
 ---
 
@@ -573,17 +590,19 @@ npm run dev
 
 - **Node.js** - Runtime
 - **Express** - Web framework
-- **TypeScript** - Type safety
-- **Google Generative AI SDK** - Gemini API
+- **TypeScript** - Type safety (full implementation in `src/`)
+- **JavaScript/ES Modules** - Current production server
+- **Google Generative AI SDK** - Gemini 2.0 Flash Exp
 - **Multer** - File upload handling
 - **Axios** - HTTP client (for URL analysis)
 
 ### AI & Security
 
-- **Gemini 3 Flash** - Threat reasoning, behavior prediction
-- **VirusTotal API** - AV engine validation (optional)
-- **Shannon Entropy** - Obfuscation detection
-- **Magic Byte Database** - File type identification
+- **Gemini 2.0 Flash Experimental** - Behavioral threat reasoning (not just summarization)
+- **VirusTotal API** - AV engine validation (optional, TypeScript version)
+- **Shannon Entropy** - Encryption/obfuscation detection
+- **Magic Byte Database** - 30+ file format signatures
+- **Pattern Matching** - Shellcode, Base64 executables, suspicious APIs
 
 ---
 
