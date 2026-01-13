@@ -8,11 +8,14 @@ coverage/
 
 # Production builds
 build/
-dist/
-backend/dist/
+frontend/dist/
 
-# TypeScript source (keep local only, don't deploy)
-backend/src/
+# Backend dist is committed for Render deployment
+# backend/dist/
+
+# Uploads folder
+backend/uploads/
+uploads/
 
 # Environment variables
 .env

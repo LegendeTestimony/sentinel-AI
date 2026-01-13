@@ -2,30 +2,33 @@
   "name": "sentinel-backend",
   "version": "1.0.0",
   "description": "Sentinel AI Security Backend",
-  "main": "server.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "echo 'Using JavaScript server - no build needed'",
-    "start": "node server.js",
-    "start:ts": "node dist/server.js",
-    "lint": "eslint . --ext .ts",
-    "marathon-demo": "tsx marathon-demo.js"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:dev": "tsx src/server.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "security",
+    "malware",
+    "ai",
+    "gemini"
+  ],
+  "author": "Legend Testimony",
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "axios": "^1.13.2",
     "chokidar": "^3.6.0",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^2.7.0",
-    "node-virustotal": "^3.35.0"
+    "node-virustotal": "^3.35.0",
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -33,7 +36,6 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.19.5",
     "@types/node-fetch": "^2.6.13",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsx": "^4.19.2"
   }
 }
