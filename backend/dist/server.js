@@ -21,7 +21,26 @@ const upload = multer({
 // Middleware
 // CORS configuration - allows frontend to communicate with backend
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+        if (!origin)
+            return callback(null, true);
+        const allowedOrigins = process.env.NODE_ENV === 'production'
+            ? [
+                'https://sentinel-ai-by-legend.vercel.app',
+                process.env.FRONTEND_URL,
+            ].filter(Boolean)
+            : ['http://localhost:3000', 'http://localhost:5173'];
+        // Remove trailing slashes for comparison
+        const normalizedOrigin = origin.replace(/\/$/, '');
+        const normalizedAllowed = allowedOrigins.map(o => o?.replace(/\/$/, ''));
+        if (normalizedAllowed.includes(normalizedOrigin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
