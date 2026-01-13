@@ -2,12 +2,13 @@
   "name": "sentinel-backend",
   "version": "1.0.0",
   "description": "Sentinel AI Security Backend",
-  "main": "dist/server.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "echo 'Using JavaScript server - no build needed'",
+    "start": "node server.js",
+    "start:ts": "node dist/server.js",
     "lint": "eslint . --ext .ts",
     "marathon-demo": "tsx marathon-demo.js"
   },
