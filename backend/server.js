@@ -20,9 +20,28 @@ const upload = multer({
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://sentinel-ai-by-legend.vercel.app']
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5050'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? [
+          'https://sentinel-ai-by-legend.vercel.app',
+          'https://sentinel-ai-by-legend.vercel.app/',
+        ]
+      : [
+          'http://localhost:5173',
+          'http://localhost:3000',
+          'http://localhost:5050',
+        ];
+
+    // Check if the origin is in the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
   optionsSuccessStatus: 200
