@@ -4,12 +4,17 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install
+    rootDir: backend
+    buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 10000
       - key: GEMINI_API_KEY
-        sync: false  # You'll set this in Render dashboard
+        sync: false
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
