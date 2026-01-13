@@ -1,7 +1,46 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production builds
+build/
 dist/
+backend/dist/
+
+# TypeScript source (keep local only, don't deploy)
+backend/src/
+
+# Environment variables
 .env
+.env.local
+.env.production.local
+backend/.env
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-backend/uploads/
+Thumbs.db
+
+# Temporary
 *.tmp
+backend/test.txt
+backend/server.log
+
+# Claude Code
+.claude/
