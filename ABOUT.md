@@ -6,21 +6,22 @@
 
 ## 💡 What Inspired Me
 
-### The Background: From SEAL to Sentinel
+## The Background: From SEAL to Sentinel
 
 I've been working on **SEAL** (Self-Encrypting Autonomous Layer), a file format that embeds post-breach security directly into files themselves. SEAL files are autonomous — they can detect unauthorized database breaches and self-destruct to prevent data leaks. It's a radical approach to security: instead of protecting the perimeter, protect the data itself.
 
 But while building SEAL, I kept coming back to the same frustrating realization: **we're always fighting threats after they've already gotten in**.
 
-Post-breach security is fundamentally reactive. By the time SEAL detects unauthorized access, the attacker is already inside your system. What if we could predict threats *before* they execute? What if AI could reason about file behavior and catch malware before it runs?
+Post-breach security is fundamentally reactive. By the time SEAL detects unauthorized access, the attacker is already inside your system. What if we could predict threats _before_ they execute? What if AI could reason about file behavior and catch malware before it runs?
 
 That question became Sentinel.
 
-### The Gemini 3 "Action Era" Spark
+## The Gemini 3 "Action Era" Spark
 
 When Google announced the Gemini 3 Hackathon with its focus on the **"Action Era"** — autonomous agents that run for hours or days with self-correction — something clicked.
 
 Traditional security tools are one-shot analyzers:
+
 1. Scan file
 2. Report result
 3. Done
@@ -35,13 +36,14 @@ That's when Sentinel AI was born.
 
 ## 🎓 What I Learned
 
-### 1. The False Positive Crisis
+## 1. The False Positive Crisis
 
 Early versions of Sentinel had a catastrophic problem: **every HEIC image from my iPhone was flagged as a CRITICAL threat**.
 
 At first, I thought it was a bug. But when I dug deeper, I realized it was a fundamental design flaw in how I was thinking about threat detection.
 
 **The Problem:**
+
 - HEIC files have 7.2-7.99 Shannon entropy (extremely high, looks like encrypted malware)
 - The magic bytes are at **offset 4**, not offset 0 (my validator missed them entirely)
 - My system automatically labeled unknown formats as "SUSPICIOUS"
@@ -51,13 +53,14 @@ At first, I thought it was a bug. But when I dug deeper, I realized it was a fun
 Raw metrics mean nothing without context. A JPEG with 7.5 entropy is perfectly normal — it's compressed image data. A Word document with 7.5 entropy is malware — documents shouldn't be that random.
 
 I rebuilt the entire validation system with:
+
 - **Offset-aware magic byte detection** (checking bytes at arbitrary positions)
 - **Format-specific entropy baselines** (HEIC: 7.2-7.99 is normal, PE: >7.0 is suspicious)
 - **ISOBMFF container parsing** to properly identify modern image formats
 
 This taught me that **context matters more than raw numbers**. Security isn't about thresholds — it's about understanding what's normal for each file type.
 
-### 2. AI Reasoning ≠ AI Summarization
+## 2. AI Reasoning ≠ AI Summarization
 
 My initial Gemini integration was embarrassingly naive. I was using AI as a glorified template engine:
 
@@ -66,7 +69,7 @@ My initial Gemini integration was embarrassingly naive. I was using AI as a glor
 Please summarize this as a threat report."
 ```
 
-The hackathon feedback was brutal but accurate: *"Gemini is just window dressing here. It's not reasoning, it's summarizing. 5.6/10."*
+The hackathon feedback was brutal but accurate: _"Gemini is just window dressing here. It's not reasoning, it's summarizing. 5.6/10."_
 
 They were absolutely right.
 
@@ -89,36 +92,38 @@ Now Gemini analyzes behavior instead of rephrasing my analysis. That's the diffe
 
 **Key Insight:** Don't ask AI to make your results sound smart. Ask AI to solve problems you can't solve statically.
 
-### 3. Multi-Stage Pipelines Beat Monolithic Analysis
+## 3. Multi-Stage Pipelines Beat Monolithic Analysis
 
 From my SEAL project, I learned that security needs specialized layers. You can't just write one `checkForMalware()` function and call it a day.
 
-Sentinel uses an **11-stage pipeline**:
-1. Magic byte detection
-2. Container parsing (ISOBMFF, RIFF)
-3. Metadata extraction
-4. Entropy baseline analysis
-5. Threat scoring with weighted indicators
-6. Steganography detection
-7. Polyglot detection
-8. Payload hunting
-9. VirusTotal validation
-10. AI threat reasoning
-11. Sandbox behavior prediction
+Sentinel has two implementations:
+
+**Current Production (JavaScript - 6 core stages):**
+
+1. Magic byte detection (offset-aware, 30+ formats)
+2. Metadata extraction (SHA-256, size, timestamps)
+3. Entropy analysis (Shannon entropy 0-8 scale, context-aware)
+4. Pattern detection (shellcode, Base64 executables, suspicious APIs)
+5. Weighted threat scoring (evidence-based 0-100 scale)
+6. AI threat reasoning with Gemini 3 Flash (behavioral prediction, not summarization)
+
+**Advanced TypeScript Implementation (11 stages):**
+Includes the above 6 stages PLUS: 7. Steganography detection (LSB analysis, PNG chunks) 8. Polyglot detection (files valid as multiple formats) 9. Payload hunting (embedded executables, high-entropy regions) 10. VirusTotal validation (70+ AV engines) 11. Sandbox behavior prediction (file/network/registry operations)
 
 Each stage is independent and testable. If the VirusTotal API goes down, the other 10 stages still work. If Gemini times out, I still have static analysis results.
 
 **Lesson:** Modularity isn't just good software engineering — it's critical for reliability in security tools.
 
-### 4. URL Analysis is Harder Than File Analysis
+## 4. URL Analysis is Harder Than File Analysis
 
 Adding URL scanning seemed simple: "just fetch the HTML and analyze it."
 
 I was spectacularly wrong.
 
 Real-world URLs are chaos:
+
 - **Redirect chains**: Shortened links → CDN → final destination (I spent hours debugging infinite redirect loops)
-- **Dynamic JavaScript**: Malicious code that loads *after* the page renders
+- **Dynamic JavaScript**: Malicious code that loads _after_ the page renders
 - **Timeouts and failures**: Sites go down, firewalls block you, DNS fails
 - **Malformed HTML**: Parsing broken HTML without crashing is an art form
 
@@ -126,7 +131,7 @@ I spent more time debugging URL edge cases than I did building the entire file a
 
 **Lesson:** Files are deterministic. URLs are not. Never assume network operations will behave predictably.
 
-### 5. Speed vs Thoroughness Tradeoff
+## 5. Speed vs Thoroughness Tradeoff
 
 I originally built a 3-agent debate system (Prosecutor → Defense → Judge) to showcase Gemini's reasoning. It was architecturally elegant and technically impressive.
 
@@ -136,7 +141,7 @@ Users don't care about architectural cleverness if it's too slow to use. I simpl
 
 **Lesson:** Shipping beats sophistication. The best architecture is the one users will actually use.
 
-### 6. Marathon Mode ≠ Serverless
+## 6. Marathon Mode ≠ Serverless
 
 The biggest technical revelation came when designing Marathon Mode for the "Action Era" track.
 
@@ -144,6 +149,7 @@ The biggest technical revelation came when designing Marathon Mode for the "Acti
 I can deploy everything to Vercel because it's free, fast, and scales automatically.
 
 **Reality Check:**
+
 - Serverless functions have **time limits** (Vercel: 10-900 seconds depending on plan)
 - Marathon Mode needs to run for **hours or days**
 - Serverless filesystems are **ephemeral** — files disappear between invocations
@@ -152,6 +158,7 @@ I can deploy everything to Vercel because it's free, fast, and scales automatica
 
 **The Solution:**
 Hybrid architecture:
+
 - **Web UI on Vercel** (serverless) — Perfect for one-shot file uploads
 - **Marathon Mode on VPS** (traditional server) — Needed for continuous operation
 
@@ -161,28 +168,38 @@ Hybrid architecture:
 
 ## 🛠️ How I Built It
 
-### Phase 1: Core File Analysis (Week 1)
+## Phase 1: Core File Analysis (Jan 5-8)
 
-Started with the fundamentals:
+**Current Implementation Status:**
 
-1. **Magic Byte Detection** (`magic-bytes.ts`)
-   - Built a comprehensive signature database (30+ formats)
-   - Implemented offset-aware matching (critical for HEIC at offset 4)
-   - Added confidence scoring per match
+Built two versions of Sentinel:
 
-2. **Container Parsing** (`isobmff-parser.ts`)
-   - Wrote ISOBMFF parser for modern image formats (HEIC, AVIF, HEIF)
-   - Extracted `ftyp` boxes to identify brand (heic, heix, hevc, etc.)
-   - Validated container structure integrity
+1. **Production JavaScript Server** (`backend/server.js`)
+   - ES modules (required by package.json "type": "module")
+   - 6 core analysis stages
+   - Gemini 3 Flash Preview for AI reasoning
+   - Multer for file uploads
+   - CORS configured for Vercel + local development
+   - Real-time threat analysis with behavioral prediction
 
-3. **Entropy Analysis** (`format-baselines.ts`)
-   - Calculated Shannon entropy (0-8 scale)
-   - Built format-specific baselines (HEIC: 7.2-7.99, JPEG: 6.8-7.8, PE: <7.0)
-   - Flagged abnormal entropy for each type
+2. **Advanced TypeScript Implementation** (`backend/src/`)
+   - Full 11-stage pipeline with all advanced features
+   - Magic Byte Detection (`magic-bytes.ts`)
+     - Comprehensive signature database (30+ formats)
+     - Offset-aware matching (HEIC at offset 4)
+     - Confidence scoring per match
+   - Container Parsing (`isobmff-parser.ts`)
+     - ISOBMFF parser for HEIC/AVIF/HEIF
+     - Extracted `ftyp` boxes to identify brands
+     - Structure integrity validation
+   - Entropy Analysis (`format-baselines.ts`)
+     - Shannon entropy (0-8 scale)
+     - Format-specific baselines (HEIC: 7.2-7.99, JPEG: 6.8-7.8, PE: <7.0)
+     - Abnormal entropy flagging
 
-### Phase 2: Advanced Threat Detection (Week 2)
+## Phase 2: Advanced Threat Detection (Jan 9-10)
 
-Implemented novel detection modules:
+**TypeScript-Only Advanced Modules** (`backend/src/analyzers/`):
 
 1. **Steganography Detector** (`steganography-detector.ts`)
    - JPEG DCT coefficient LSB analysis
@@ -200,9 +217,18 @@ Implemented novel detection modules:
    - Embedded PE header scanning
    - High-entropy region analysis
 
-### Phase 3: External Integrations (Week 3)
+**Note:** The production JavaScript server includes basic pattern detection for shellcode and Base64 executables, but the TypeScript version has more sophisticated analysis.
 
-Added external validation:
+## Phase 3: External Integrations (Jan 11-13)
+
+**AI Integration (Both Versions):**
+
+All versions now use **Gemini 3 Flash Preview** for behavioral threat analysis:
+
+- JavaScript version: Direct integration with behavioral prediction
+- TypeScript version: Enhanced with multi-agent debate system (optional)
+
+**TypeScript-Only External Services:**
 
 1. **VirusTotal Integration** (`virustotal-client.ts`)
    - SHA-256 hash checking against 70+ AV engines
@@ -210,11 +236,16 @@ Added external validation:
    - Respects API rate limits (4 requests/minute on free tier)
 
 2. **Sandbox Predictor** (`sandbox-predictor.ts`)
-   - Uses Gemini to predict execution behavior *without running code*
+   - Uses Gemini to predict execution behavior _without running code_
    - Predicts: file operations, network activity, registry changes, process creation
    - Risk score 0-100 with behavior summary
 
-### Phase 4: Marathon Mode (Week 4)
+**URL Analysis (Both Versions):**
+
+- JavaScript: Basic URL threat analysis using Gemini
+- TypeScript: Enhanced with redirect tracking and HTML parsing
+
+## Phase 4: Marathon Mode (Jan 14-16)
 
 The big architectural shift:
 
@@ -237,7 +268,7 @@ The big architectural shift:
    - Only watches NEW files (ignoreInitial: true) to save API tokens
    - Automatic quarantine to `.quarantine/` directory
 
-### Phase 5: Frontend & Polish (Week 5)
+## Phase 5: Frontend & Polish (Jan 17-18)
 
 Built the user interface:
 
@@ -259,32 +290,35 @@ Built the user interface:
 
 ## 🚧 Challenges I Faced
 
-### Challenge 1: HEIC Detection at Offset 4
+## Challenge 1: HEIC Detection at Offset 4
 
 **Problem:**
 HEIC/HEIF/AVIF files have their magic bytes at offset 4, not offset 0. My validator only checked offset 0, so all iPhone photos were classified as "unknown format" and flagged as suspicious.
 
 **Solution:**
+
 ```typescript
 const SIGNATURES = [
-  { ext: 'heic', magic: [0x66, 0x74, 0x79, 0x70], offset: 4 }, // 'ftyp'
-  { ext: 'jpeg', magic: [0xFF, 0xD8, 0xFF], offset: 0 },
+  { ext: "heic", magic: [0x66, 0x74, 0x79, 0x70], offset: 4 }, // 'ftyp'
+  { ext: "jpeg", magic: [0xff, 0xd8, 0xff], offset: 0 },
   // ...
 ];
 ```
 
 Then built an ISOBMFF parser to extract the `ftyp` brand and validate container structure.
 
-### Challenge 2: TypeScript Buffer Configuration
+## Challenge 2: TypeScript Buffer Configuration
 
 **Problem:**
 Node.js buffers didn't work in TypeScript without proper configuration. Got constant errors:
+
 ```
 Property 'from' does not exist on type 'Buffer'
 ```
 
 **Solution:**
 Added to `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -294,20 +328,21 @@ Added to `tsconfig.json`:
 }
 ```
 
-### Challenge 3: Context-Aware Pattern Matching
+## Challenge 3: Context-Aware Pattern Matching
 
 **Problem:**
 Searching for suspicious strings like "CreateProcess" flagged **every PDF** because PDF metadata often contains those strings as plain text.
 
 **Solution:**
 Built context-aware detection:
+
 - **Executables**: Flag suspicious API calls in code sections
 - **PDFs**: Ignore text content, only flag embedded executables
 - **Images**: Flag appended executables or embedded scripts
 
 The same string means different things depending on file type and location.
 
-### Challenge 4: Balancing Speed and Thoroughness
+## Challenge 4: Balancing Speed and Thoroughness
 
 **Problem:**
 Initial multi-agent AI debate system (Prosecutor → Defense → Judge) was thorough but took 10-15 seconds per file.
@@ -318,12 +353,13 @@ Simplified to single AI call with structured reasoning. Still provides transpare
 **Tradeoff:**
 Less "impressive" architecture, but way more usable. Users care about results, not implementation elegance.
 
-### Challenge 5: Marathon Mode Architecture for Serverless
+## Challenge 5: Marathon Mode Architecture for Serverless
 
 **Problem:**
 Designed Marathon Mode with continuous file watching, learning baselines, and multi-day operation. Naively assumed I could deploy everything to Vercel.
 
 **Reality:**
+
 ```typescript
 // This doesn't work on Vercel
 this.watcher = chokidar.watch(watchPath, { persistent: true }); // Killed after 900s
@@ -332,6 +368,7 @@ maxRuntime: 30 * 60 * 1000; // 30 minutes (Vercel max: 15 min)
 ```
 
 Serverless platforms:
+
 - Kill functions after 10-900 seconds
 - Have ephemeral filesystems
 - Don't support background processes
@@ -339,18 +376,20 @@ Serverless platforms:
 
 **Solution:**
 Hybrid deployment:
+
 - **Web UI + single-file API** → Vercel (perfect for one-shot analysis)
 - **Marathon Mode** → VPS/traditional server (needed for persistent operation)
 
 **Lesson:**
-Design with deployment constraints from the start, not as an afterthought.
+Design with deployment constraints from the start, not as an afterthought, So my solution to test marathon is to download the github dir and run the project locally.
 
-### Challenge 6: Gemini API Rate Limits and Costs
+## Challenge 6: Gemini API Rate Limits and Costs
 
 **Problem:**
 During development, I was making 100+ API calls per testing session. Costs added up quickly, and rate limits hit during peak testing.
 
 **Solution:**
+
 - Implemented aggressive caching for repeated file analyses
 - Added `ignoreInitial: true` to file watcher (only analyze NEW files)
 - Created mock responses for unit testing
@@ -365,7 +404,8 @@ Always design with API costs in mind. Every call costs money and counts against 
 
 Sentinel AI represents a shift in how we think about security:
 
-### Traditional Approach:
+## Traditional Approach:
+
 1. Wait for malware to appear
 2. Analyze signatures
 3. Update signature database
@@ -373,7 +413,8 @@ Sentinel AI represents a shift in how we think about security:
 
 **Problem:** Always reactive. Zero-days slip through.
 
-### Sentinel's Approach:
+## Sentinel's Approach:
+
 1. Reason about file structure and behavior
 2. Predict what would happen if executed
 3. Learn from false positives over time
@@ -381,7 +422,7 @@ Sentinel AI represents a shift in how we think about security:
 
 **Advantage:** Proactive prediction, not reactive matching.
 
-### Marathon Agent Capabilities:
+## Marathon Agent Possible Capabilities:
 
 - **Runs for days/weeks** without stopping
 - **Self-corrects** when evidence is contradictory
@@ -393,14 +434,29 @@ This aligns perfectly with Google's "Action Era" vision: autonomous systems that
 
 ---
 
-## 🚀 What's Next
+## 🚀 Current Status & What's Next
 
-### Immediate Post-Hackathon:
-1. **Persistent storage** for threat baselines (save to JSON/database)
-2. **Web dashboard** for live Marathon Mode metrics
-3. **Historical analysis** to show learning improvements over time
+## ✅ Completed:
 
-### Future Vision:
+1. **Dual Implementation Strategy**
+   - Production JavaScript server (6 core stages) - Fast, lightweight, ready for deployment
+   - Advanced TypeScript implementation (11 stages) - Full feature set for power users
+2. **CORS Configuration** - Fixed for Vercel deployment
+3. **Environment Configuration** - Proper .env setup for both local and production
+4. **Gemini 3 Flash Preview Integration** - Latest model with advanced reasoning capabilities
+5. **File Upload Pipeline** - Working end-to-end analysis
+
+## Immediate Post-Hackathon:
+
+1. **Merge TypeScript features** into production JavaScript server selectively
+2. **Add rate limiting** to prevent API abuse
+3. **Implement caching** for repeated file analysis
+4. **Persistent storage** for threat baselines (save to JSON/database)
+5. **Web dashboard** for live Marathon Mode metrics
+6. **Historical analysis** to show learning improvements over time
+
+## Future Vision:
+
 1. **Chrome Extension** - Analyze downloads before they hit disk
 2. **Email Integration** - Scan attachments inline in Gmail/Outlook
 3. **YARA Rule Support** - Custom pattern matching for security teams
@@ -430,6 +486,4 @@ That's the future of security. That's Sentinel AI.
 
 ---
 
-**Built with ❤️ for the Gemini 3 Global Hackathon**
-
-*— endga, solo developer, believer in autonomous security*
+**Built by Legend Testimony for the Gemini 3 Global Hackathon**

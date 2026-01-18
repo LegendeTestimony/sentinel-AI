@@ -50,6 +50,21 @@ async function retryWithBackoff<T>(
  * Parse Gemini's text response into structured threat analysis
  */
 function parseThreatResponse(text: string): ThreatAnalysis {
+  // Helper function to extract section content between headers
+  // Looks for content after a section header until the next section header or end
+  const extractSection = (sectionName: string): string | undefined => {
+    // Match section header with optional ** markers and capture everything until next header
+    const escapedName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(
+      `\\*{0,2}${escapedName}\\*{0,2}[:\\s]*\\n?([\\s\\S]*?)(?=\\n\\*{0,2}[A-Z][A-Z ]{2,}\\*{0,2}:|$)`,
+      'i'
+    );
+    const match = text.match(pattern);
+    const content = match?.[1]?.trim();
+    // Return undefined if content is empty or just whitespace
+    return content && content.length > 0 ? content : undefined;
+  };
+
   // Extract threat level (handle both **THREAT LEVEL**: and THREAT LEVEL:)
   const threatLevelMatch = text.match(/\*{0,2}THREAT LEVEL\*{0,2}:\s*(\w+)/i);
   const level: ThreatLevel = (threatLevelMatch?.[1]?.toUpperCase() as ThreatLevel) || 'UNKNOWN';
@@ -58,33 +73,28 @@ function parseThreatResponse(text: string): ThreatAnalysis {
   const confidenceMatch = text.match(/\*{0,2}CONFIDENCE\*{0,2}:\s*(\d+)/i);
   const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : 0;
 
-  // Extract summary
-  const summaryMatch = text.match(/\*{0,2}SUMMARY\*{0,2}:\s*(.+?)(?=\n\n|\*\*[A-Z])/s);
-  const summary = summaryMatch?.[1]?.trim() || 'No summary provided';
+  // Extract summary - handle inline format "**SUMMARY**: text" or block format
+  const summaryInlineMatch = text.match(/\*{0,2}SUMMARY\*{0,2}:\s*([^\n]+)/i);
+  const summary = summaryInlineMatch?.[1]?.trim() || extractSection('SUMMARY') || 'No summary provided';
 
   // Extract technical analysis
-  const techAnalysisMatch = text.match(/\*{0,2}TECHNICAL ANALYSIS\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
-  const technicalAnalysis = techAnalysisMatch?.[1]?.trim();
+  const technicalAnalysis = extractSection('TECHNICAL ANALYSIS');
 
   // Extract predicted attack vector
-  const attackVectorMatch = text.match(/\*{0,2}PREDICTED ATTACK VECTOR\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
-  const predictedAttackVector = attackVectorMatch?.[1]?.trim();
+  const predictedAttackVector = extractSection('PREDICTED ATTACK VECTOR');
 
   // Extract indicators
-  const indicatorsMatch = text.match(/\*{0,2}INDICATORS\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
-  const indicatorsText = indicatorsMatch?.[1]?.trim();
+  const indicatorsText = extractSection('INDICATORS');
   const indicators = indicatorsText
     ?.split('\n')
-    .map(line => line.replace(/^[-•*]\s*/, '').trim())
-    .filter(line => line.length > 0);
+    .map(line => line.replace(/^[-•*\d.)\s]+/, '').trim())
+    .filter(line => line.length > 0 && !line.match(/^(key finding|indicator)/i));
 
   // Extract recommendation
-  const recommendationMatch = text.match(/\*{0,2}RECOMMENDATION\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
-  const recommendation = recommendationMatch?.[1]?.trim();
+  const recommendation = extractSection('RECOMMENDATION');
 
   // Extract reasoning
-  const reasoningMatch = text.match(/\*{0,2}REASONING\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
-  const reasoning = reasoningMatch?.[1]?.trim();
+  const reasoning = extractSection('REASONING');
 
   // Extract hidden content analysis (for steganography)
   const hiddenContentMatch = text.match(/\*{0,2}HIDDEN CONTENT ANALYSIS\*{0,2}:\s*(.+?)(?=\*\*[A-Z]|$)/s);
@@ -169,8 +179,8 @@ export async function analyzeWithGemini(
   steganography?: SteganographyAnalysis
 ): Promise<ThreatAnalysis> {
   try {
-    // Use gemini-2.0-flash-exp (only working model)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    // Use Gemini 3 Flash - our most balanced model for speed and intelligence
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     // Build structured analysis data (neutral, fact-based)
     const structuredData = {

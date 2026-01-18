@@ -28,7 +28,7 @@ async function retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
  */
 export async function predictSandboxBehavior(fileAnalysis, threatScore, steganography, fileIdentification) {
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
         const prompt = `You are a malware analysis sandbox simulator. Based on static analysis of a file, predict what would happen if it were executed in an isolated sandbox environment.
 
 ## File Analysis Data:

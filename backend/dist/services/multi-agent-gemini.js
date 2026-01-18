@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
  * PROSECUTOR AGENT - Finds all suspicious indicators
  */
 async function prosecutorAnalysis(fileData, formatContext) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const prompt = `You are a SECURITY PROSECUTOR analyzing a potentially malicious file. Your job is to find ALL suspicious indicators and argue for the HIGHEST threat level justified by evidence.
 
 ## File Analysis Data:
@@ -52,7 +52,7 @@ Be aggressive in your analysis. Assume worst-case scenarios. Your job is to prot
  * DEFENSE AGENT - Explains benign reasons for each indicator
  */
 async function defenseAnalysis(fileData, formatContext, prosecutorArgument) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const prompt = `You are a SECURITY DEFENSE ANALYST. The prosecutor claims this file is malicious. Your job is to provide ALTERNATIVE BENIGN EXPLANATIONS for each suspicious indicator.
 
 ## File Analysis Data:
@@ -101,7 +101,7 @@ Be thorough in finding innocent explanations. Consider legitimate use cases. You
  * JUDGE AGENT - Weighs both arguments and makes final decision
  */
 async function judgeAnalysis(fileData, formatContext, prosecutor, defense) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const prompt = `You are a SENIOR SECURITY JUDGE. Two expert analysts have debated this file. Your job is to weigh BOTH arguments and make the FINAL, BALANCED decision.
 
 ## File Analysis Data:

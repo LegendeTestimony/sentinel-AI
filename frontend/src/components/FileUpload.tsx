@@ -4,9 +4,10 @@ import { Upload, File, AlertCircle } from 'lucide-react';
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+  id?: string;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled, id = 'file-upload' }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -56,14 +57,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }
       >
         <input
           type="file"
-          id="file-upload"
+          id={id}
           className="hidden"
           onChange={handleChange}
           disabled={disabled}
         />
 
         <label
-          htmlFor="file-upload"
+          htmlFor={id}
           className={`
             flex flex-col items-center justify-center
             w-full h-64 px-4 py-6

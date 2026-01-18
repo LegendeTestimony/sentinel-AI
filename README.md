@@ -197,6 +197,7 @@ The biggest technical revelation came when designing Marathon Mode for the hacka
 **The Problem**: I wanted continuous multi-day monitoring with learning capabilities. My first instinct was to deploy everything to Vercel (serverless) because it's free and easy.
 
 **Reality Check**:
+
 - Serverless functions have **time limits** (10-900 seconds max, depending on plan)
 - Marathon Mode needs to run for **hours or days**
 - Serverless filesystems are **ephemeral** - files disappear between invocations
@@ -204,6 +205,7 @@ The biggest technical revelation came when designing Marathon Mode for the hacka
 - `chokidar` file watchers can't run persistent background processes
 
 **The Solution**: Hybrid architecture
+
 - **Web UI on Vercel** (serverless) - Perfect for one-shot file uploads
 - **Marathon Mode on VPS** (traditional server) - Needed for continuous operation
 
@@ -336,7 +338,7 @@ This challenge taught me to **design with deployment constraints in mind from th
       0-19 = SAFE | 20-39 = LOW | 40-59 = MEDIUM
       60-79 = HIGH | 80-100 = CRITICAL
     ↓
-🤖 Stage 6: AI Threat Reasoning (Gemini 2.0 Flash Exp)
+🤖 Stage 6: AI Threat Reasoning (Gemini 3 Flash Preview)
     • NOT just summarizing - actual behavioral prediction
     • Predicts what happens if file executes:
       - File operations it will perform
@@ -350,7 +352,7 @@ This challenge taught me to **design with deployment constraints in mind from th
       - MEDIUM threat + confidence < 70%
       - Any threat with confidence < 60% (except SAFE)
     • Prosecutor → Defense → Judge debate system
-    • Uses Gemini 2.0 Flash Exp (faster than previous 1.5 Pro)
+    • Uses Gemini 3 Flash Preview (faster reasoning than previous models)
     • Improves accuracy on uncertain cases without slowing all analysis
     ↓
 📊 Final Threat Report
@@ -372,7 +374,7 @@ The full implementation in `backend/src/` includes 6 additional stages:
 
 #### NEW: Intelligent Multi-Agent System
 
-- Multi-agent debate (Prosecutor/Defense/Judge) now uses **Gemini 2.0 Flash Exp** instead of Gemini 1.5 Pro
+- Multi-agent debate (Prosecutor/Defense/Judge) now uses **Gemini 3 Flash Preview** for advanced reasoning
 - **Smart triggering**: Only activates for borderline cases (MEDIUM + low confidence)
 - **Result**: Faster analysis (3-5s typical, 10-15s only when needed), better accuracy on edge cases
 
@@ -606,13 +608,13 @@ npm run dev
 - **Express** - Web framework
 - **TypeScript** - Type safety (full implementation in `src/`)
 - **JavaScript/ES Modules** - Current production server
-- **Google Generative AI SDK** - Gemini 2.0 Flash Exp
+- **Google Generative AI SDK** - Gemini 3 Flash Preview
 - **Multer** - File upload handling
 - **Axios** - HTTP client (for URL analysis)
 
 ### AI & Security
 
-- **Gemini 2.0 Flash Experimental** - Behavioral threat reasoning (not just summarization)
+- **Gemini 3 Flash Preview** - Behavioral threat reasoning (not just summarization)
 - **VirusTotal API** - AV engine validation (optional, TypeScript version)
 - **Shannon Entropy** - Encryption/obfuscation detection
 - **Magic Byte Database** - 30+ file format signatures

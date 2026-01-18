@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowLeft, GitCompare } from 'lucide-react';
+import { Shield, ArrowLeft, GitCompare, AlertCircle } from 'lucide-react';
 import { FileUpload } from '../components/FileUpload';
 import { ThreatCard } from '../components/ThreatCard';
-import { useFileAnalysis } from '../hooks/useFileAnalysis';
+import { sentinelApi } from '../api/sentinelApi';
 import type { AnalysisResult } from '../types/analysis';
 
 export function ComparisonPage() {
@@ -14,19 +14,21 @@ export function ComparisonPage() {
   const [resultB, setResultB] = useState<AnalysisResult | null>(null);
   const [analyzingA, setAnalyzingA] = useState(false);
   const [analyzingB, setAnalyzingB] = useState(false);
-
-  const { analyzeFile } = useFileAnalysis();
+  const [errorA, setErrorA] = useState<string | null>(null);
+  const [errorB, setErrorB] = useState<string | null>(null);
 
   const handleAnalyzeA = async () => {
     if (!fileA) return;
     setAnalyzingA(true);
     setResultA(null);
+    setErrorA(null);
 
     try {
-      const result = await analyzeFile(fileA);
-      setResultA(result as any);
+      const result = await sentinelApi.analyzeFile(fileA);
+      setResultA(result);
     } catch (error) {
       console.error('Error analyzing File A:', error);
+      setErrorA(error instanceof Error ? error.message : 'Analysis failed');
     } finally {
       setAnalyzingA(false);
     }
@@ -36,12 +38,14 @@ export function ComparisonPage() {
     if (!fileB) return;
     setAnalyzingB(true);
     setResultB(null);
+    setErrorB(null);
 
     try {
-      const result = await analyzeFile(fileB);
-      setResultB(result as any);
+      const result = await sentinelApi.analyzeFile(fileB);
+      setResultB(result);
     } catch (error) {
       console.error('Error analyzing File B:', error);
+      setErrorB(error instanceof Error ? error.message : 'Analysis failed');
     } finally {
       setAnalyzingB(false);
     }
@@ -55,14 +59,26 @@ export function ComparisonPage() {
     setAnalyzingB(true);
     setResultA(null);
     setResultB(null);
+    setErrorA(null);
+    setErrorB(null);
 
     try {
-      const [resA, resB] = await Promise.all([
-        analyzeFile(fileA),
-        analyzeFile(fileB),
+      const [resA, resB] = await Promise.allSettled([
+        sentinelApi.analyzeFile(fileA),
+        sentinelApi.analyzeFile(fileB),
       ]);
-      setResultA(resA as any);
-      setResultB(resB as any);
+
+      if (resA.status === 'fulfilled') {
+        setResultA(resA.value);
+      } else {
+        setErrorA(resA.reason?.message || 'Analysis failed');
+      }
+
+      if (resB.status === 'fulfilled') {
+        setResultB(resB.value);
+      } else {
+        setErrorB(resB.reason?.message || 'Analysis failed');
+      }
     } catch (error) {
       console.error('Error analyzing files:', error);
     } finally {
@@ -209,6 +225,7 @@ export function ComparisonPage() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-cyan-300">File A</h3>
             <FileUpload
+              id="file-upload-a"
               onFileSelect={setFileA}
               disabled={analyzingA || analyzingB}
             />
@@ -227,6 +244,7 @@ export function ComparisonPage() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-purple-300">File B</h3>
             <FileUpload
+              id="file-upload-b"
               onFileSelect={setFileB}
               disabled={analyzingA || analyzingB}
             />
@@ -264,7 +282,16 @@ export function ComparisonPage() {
           <div>
             {analyzingA && (
               <div className="mb-4 text-center text-gray-400">
-                Analyzing File A...
+                <div className="animate-pulse">Analyzing File A...</div>
+              </div>
+            )}
+            {errorA && (
+              <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="flex items-center gap-2 text-red-400">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-semibold">Error analyzing File A</span>
+                </div>
+                <p className="mt-2 text-sm text-gray-400">{errorA}</p>
               </div>
             )}
             {resultA && (
@@ -280,7 +307,16 @@ export function ComparisonPage() {
           <div>
             {analyzingB && (
               <div className="mb-4 text-center text-gray-400">
-                Analyzing File B...
+                <div className="animate-pulse">Analyzing File B...</div>
+              </div>
+            )}
+            {errorB && (
+              <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="flex items-center gap-2 text-red-400">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-semibold">Error analyzing File B</span>
+                </div>
+                <p className="mt-2 text-sm text-gray-400">{errorB}</p>
               </div>
             )}
             {resultB && (
